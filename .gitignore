@@ -11,7 +11,7 @@
 !visual-editor-rtl/bidi-harness.html
 
 # Rasterized copies of SVG figures; rasterize_svg.py regenerates them.
-example/media/*.png
+example/media/**/*.png
 
 __pycache__/
 *.pyc
