@@ -1,0 +1,69 @@
+---
+title: "זיהוי טקסט מקביל"
+subtitle: "הרצאה לדוגמה — בדיקת Quarto לחומרי הוראה"
+author: "נדב אהרוני"
+# he-IL, not he: a bare tag makes Word ignore the complex-script font. See hebrew-in-quarto.md.
+lang: he-IL
+dir: rtl
+format:
+  revealjs:
+    rtl: true
+    theme: default
+    slide-number: true
+    embed-resources: true
+    css: ../rtl-fixes.css
+    mainfont: David
+  pptx:
+    # A pptx reference-doc must itself be a .pptx; the Word template does not
+    # apply here. pptx is not usable for Hebrew anyway — see hebrew-in-quarto.md.
+    slide-level: 2
+crossref:
+  fig-title: "איור"
+  fig-prefix: "איור"
+  title-delim: ":"
+---
+
+## מה נלמד היום
+
+- מהו טקסט מקביל (text reuse)
+- האלגוריתם של שמידמן: skip-grams ואלכסונים
+- השיפור: שרשור אלכסונים ל-MSM
+- השוואה ל-passim
+
+## הבעיה
+
+שני חיבורים — **הלכות פסוקות** ו**הלכות גדולות** — חולקים קטעי טקסט.
+השאלה: איך מזהים אותם אוטומטית?
+
+אתגר מרכזי: הטקסטים אינם זהים. יש הבדלי כתיב, מילים נוספות, ופיצול מילים
+(למשל "ביתרי" מול "בי תרי").
+
+## שלבי האלגוריתם
+
+1. פירוק כל טקסט ל-skip-grams
+2. סימון כל התאמה כנקודה במרחב דו-מימדי
+3. זיהוי "אלכסונים" — רצפים של התאמות
+4. שרשור אלכסונים סמוכים ל-MSM
+
+## חזרות בתוך קטע מקביל {.smaller}
+
+כאשר קטע קצר חוזר בתוך קטע ארוך, האלגוריתם עלול להתאים את העותק הלא נכון
+(ראו ב-@fig-rep).
+
+![קטע קצר שחוזר בתוך קטע ארוך מקביל](media/figures/repetition.svg){#fig-rep width=85%}
+
+## תוצאות
+
+| מדד | Shmidman | MSM |
+|:---|---:|---:|
+| מילים מכוסות | 5,859 | 7,779 |
+| מספר התאמות | 149 | 134 |
+| אורך חציוני | 33 | 42 |
+
+: השוואה בין האלגוריתמים {#tbl-results}
+
+## סיכום
+
+- שרשור אלכסונים מאריך את הקטעים המזוהים ב-33% מילים
+- הכיסוי גבוה יותר מ-passim בהרצה שנבדקה
+- הכיוון הבא: מיפוי גלובלי ושינויי משמעות

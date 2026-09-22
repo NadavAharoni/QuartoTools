@@ -1,0 +1,51 @@
+---
+title: "Minimal repro: visual mode drops table labels"
+---
+
+```{=html}
+<!--
+STEPS
+  1. Open this file in VS Code.
+  2. Switch to visual mode (Ctrl+Shift+F4).
+  3. Type a character in the paragraph below, then delete it, so the document
+     is marked dirty and gets written back.
+  4. Save (Ctrl+S), switch back to source mode, and compare with git:
+         git diff quarto_test/tbl-label-repro.qmd
+
+EXPECTED
+  The file is unchanged apart from your edit.
+
+OBSERVED (on quarto.quarto 1.135.0)
+  The table caption loses its label:
+     -: A table caption {#tbl-nums}
+     +: A table caption
+  The figure keeps its {#fig-pic}. @tbl-nums then no longer resolves, and
+  `quarto render` warns "Unable to resolve crossref @tbl-nums".
+
+WHY
+  pandoc's reader puts the label on the Table element itself --
+      Table ( "tbl-nums" , [] , [] )
+  -- and its markdown writer re-emits it correctly (verified with pandoc 3.9
+  and Quarto's bundled 3.10, both round-trip this file losslessly).
+
+  The visual editor's ProseMirror table node has no field for it. In
+  assets/www/editor/index.js the spec reads
+
+      attrs: { ...yb.table.attrs, width: {default:null}, colpercents: {default:null} }
+
+  -- width and column percentages only, no identifier -- so the id has nowhere
+  to live and is dropped on write-back.
+-->
+```
+
+Edit this paragraph, then save. See @tbl-nums and @fig-pic.
+
+Test
+
+| a   | b   |
+|-----|-----|
+| 1   | 2   |
+
+: A table caption
+
+![A figure caption](../example/media/figures/repetition.svg){#fig-pic width="40%"}

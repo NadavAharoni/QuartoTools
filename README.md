@@ -15,6 +15,10 @@ Three separate things live here:
 
 Everything was tested on Windows with Quarto 1.10, pandoc 3.9 and Python 3.14.
 
+`hebrew-in-quarto.md` is the long form: what was measured, which Quarto and pandoc
+behaviours bite in Hebrew, and why each tool here exists. Read this file for how to use
+the tools and that one for why they work the way they do.
+
 ## Rendering
 
 ```bash
@@ -40,6 +44,8 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |
+| `example/slides_demo.qmd` | a Hebrew lecture deck, for `revealjs` |
+| `scripts/generate_repetition_schematic.py` | draws a figure as SVG, as an example of the script-generated figure convention |
 
 ### Two settings that are the reason the template exists
 
@@ -66,6 +72,16 @@ python render.py example/smoke-test.qmd --to docx
 checks that the project file supplies them. Open the Word file and confirm three things:
 the Hebrew body text is David, the Latin terms inside the Hebrew paragraph do not break
 the line, and the figure appears.
+
+### Slides
+
+Use `revealjs`, not `pptx`. Pandoc does not carry `dir: rtl` into PowerPoint, so bullets
+sit on the left and clause order visibly scrambles. The same deck is correct in every
+respect as `revealjs`. `example/slides_demo.qmd` is the deck this was measured on.
+
+```bash
+quarto render example/slides_demo.qmd --to revealjs
+```
 
 ### Using it from a document repository
 
@@ -109,9 +125,11 @@ Written up in `upstream/quarto-issue-visual-editor-tbl-label.md`.
 | `upstream/quarto-issue-visual-editor-tbl-label.md` | the table label data loss above |
 | `upstream/quarto-patch-table-attr.patch` | a proposed fix for it |
 | `upstream/quarto-verify-table-attr.ts` | what the patch was checked with |
+| `upstream/tbl-label-repro.qmd` | the smallest document that reproduces the table label loss |
 
 ## Where these came from
 
 The `TextReuse` repository, which is where the trial ran. It keeps its own working copy
 under `quarto/`; the two can drift apart, so treat this repository as the one to develop
-in.
+in. The trial document itself and its figures stay in `TextReuse`, on the
+`worktree-quarto-test` branch.
