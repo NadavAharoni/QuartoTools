@@ -91,10 +91,9 @@ def set_png_dpi(png: Path, dpi: float) -> None:
     png.write_bytes(b''.join(out))
 
 
-def rasterize(svg: Path, edge: Path, scale: float) -> Path:
-    width, height = svg_size(svg)
-    out = svg.with_suffix(".png")
-    subprocess.run(
+def screenshot(svg: Path, out: Path, edge: Path, scale: float,
+               width: int, height: int) -> subprocess.CompletedProcess:
+    return subprocess.run(
         [
             str(edge),
             "--headless",
@@ -108,10 +107,35 @@ def rasterize(svg: Path, edge: Path, scale: float) -> Path:
             "--hide-scrollbars",
             svg.resolve().as_uri(),
         ],
-        capture_output=True,
+        capture_output=True, text=True, errors="replace",
     )
-    if not out.exists():
-        sys.exit(f"failed to rasterize {svg}")
+
+
+def rasterize(svg: Path, edge: Path, scale: float, attempts: int = 2) -> Path:
+    width, height = svg_size(svg)
+    out = svg.with_suffix(".png")
+
+    # Headless Edge fails now and then for reasons that have nothing to do with
+    # the file -- a profile still locked by a previous run, a browser update in
+    # progress. One retry clears those; anything that survives it is real, and
+    # the message below says what Edge actually complained about, because a bare
+    # "failed to rasterize" leaves you with nowhere to start.
+    for attempt in range(1, attempts + 1):
+        result = screenshot(svg, out, edge, scale, width, height)
+        if out.exists():
+            break
+        if attempt < attempts:
+            print(f"retrying {svg.name}; Edge wrote no PNG "
+                  f"(exit {result.returncode})")
+    else:
+        noise = "Every renderer should have at least one task"   # harmless, always there
+        complaint = [line for line in result.stderr.splitlines()
+                     if line.strip() and noise not in line]
+        detail = ("\n  ").join(complaint[-5:]) or "(Edge said nothing)"
+        sys.exit(f"failed to rasterize {svg}\n"
+                 f"  Edge exited {result.returncode} after {attempts} attempts\n"
+                 f"  {detail}")
+
     dpi = 96.0 * scale
     set_png_dpi(out, dpi)
     print(f"{svg.name} ({width}x{height}) -> {out.name} @ {scale}x, {dpi:g} dpi")
