@@ -1,0 +1,116 @@
+From f7ff86818d3e929e29e61fa8da4796716ea74498 Mon Sep 17 00:00:00 2001
+From: Nadav Aharoni <65665296+NadavAharoni@users.noreply.github.com>
+Date: Fri, 14 Aug 2026 19:15:46 +0300
+Subject: [PATCH] Preserve table attributes through the visual editor
+
+The pandoc AST puts a table's attributes -- including an identifier such as a
+crossref label -- on the Table element. The reader discarded them and the
+writer emitted an empty attribute list, so editing a document in visual mode
+silently removed a label like {#tbl-nums} from the source. The table then
+stopped being a cross-referenceable float and any @tbl- reference failed to
+resolve, with no warning at edit time.
+
+Hold the attributes on the table_container node, which is the node that maps
+to the pandoc Table token, and read/write them the same way div, heading and
+image already do.
+---
+ .../editor/src/nodes/table/table-nodes.ts     | 28 +++++++++++++++++--
+ .../editor/src/nodes/table/table-pandoc.ts    | 12 ++++----
+ 2 files changed, 32 insertions(+), 8 deletions(-)
+
+diff --git a/packages/editor/src/nodes/table/table-nodes.ts b/packages/editor/src/nodes/table/table-nodes.ts
+index 4b9b3ca..510a5f9 100644
+--- a/packages/editor/src/nodes/table/table-nodes.ts
++++ b/packages/editor/src/nodes/table/table-nodes.ts
+@@ -17,6 +17,7 @@ import { tableNodes } from 'prosemirror-tables';
+ import { Node as ProsemirrorNode, DOMOutputSpec } from 'prosemirror-model';
+ 
+ import { PandocTokenType } from '../../api/pandoc';
++import { pandocAttrSpec, pandocAttrParseDom, pandocAttrToDomAttr } from '../../api/pandoc_attr';
+ 
+ import {
+   readPandocTable,
+@@ -58,14 +59,35 @@ const nodes = tableNodes({
+   },
+ });
+ 
++const kTableContainerClasses = 'table-container pm-table-container';
++
+ export const tableContainerNode = {
+   name: 'table_container',
+   spec: {
++    // pandoc puts a table's attributes on the Table element itself; hold them on
++    // the container so an identifier (e.g. a #tbl- crossref label) is preserved
++    attrs: {
++      ...pandocAttrSpec,
++    },
+     content: 'table table_caption',
+     group: 'block',
+-    parseDOM: [{ tag: "div[class*='table-container']" }],
+-    toDOM(): DOMOutputSpec {
+-      return ['div', { class: 'table-container pm-table-container' }, 0];
++    parseDOM: [
++      {
++        tag: "div[class*='table-container']",
++        getAttrs(dom: Node | string) {
++          return pandocAttrParseDom(dom as Element, {});
++        },
++      },
++    ],
++    toDOM(node: ProsemirrorNode): DOMOutputSpec {
++      return [
++        'div',
++        pandocAttrToDomAttr({
++          ...node.attrs,
++          classes: [...node.attrs.classes, kTableContainerClasses],
++        }),
++        0,
++      ];
+     },
+   },
+   pandoc: {
+diff --git a/packages/editor/src/nodes/table/table-pandoc.ts b/packages/editor/src/nodes/table/table-pandoc.ts
+index b03b1f8..3990c0d 100644
+--- a/packages/editor/src/nodes/table/table-pandoc.ts
++++ b/packages/editor/src/nodes/table/table-pandoc.ts
+@@ -17,12 +17,13 @@
+ import { Schema, NodeType, Node as ProsemirrorNode, Fragment } from 'prosemirror-model';
+ 
+ import { ProsemirrorWriter, PandocToken, PandocTokenType, PandocOutput } from '../../api/pandoc';
++import { pandocAttrReadAST } from '../../api/pandoc_attr';
+ 
+ import { CssAlignment } from './table-commands';
+ import { tableColumnAlignments, tableColumnWidths } from './table-columns';
+ 
+ // attributes
+-// const kTableAttr = 0;
++const kTableAttr = 0;
+ 
+ // caption
+ const kTableCaption = 1;
+@@ -83,8 +84,9 @@ export function readPandocTable(schema: Schema) {
+       }
+     };
+ 
+-    // open table container node
+-    writer.openNode(schema.nodes.table_container, {});
++    // open table container node, carrying the table's pandoc attributes so that
++    // an identifier (e.g. a crossref label such as #tbl-nums) survives editing
++    writer.openNode(schema.nodes.table_container, pandocAttrReadAST(tok, kTableAttr));
+ 
+     // open table node
+     writer.openNode(schema.nodes.table, { colpercents });
+@@ -123,8 +125,8 @@ export function writePandocTableContainer(output: PandocOutput, node: Prosemirro
+ 
+   output.writeToken(PandocTokenType.Table, () => {
+ 
+-    // write empty attributes
+-    output.writeAttr();
++    // write attributes (preserves an identifier such as a #tbl- crossref label)
++    output.writeAttr(node.attrs.id, node.attrs.classes, node.attrs.keyvalue);
+ 
+     // write caption
+     output.writeNode(caption);
+-- 
+2.49.0.windows.1
+

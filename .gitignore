@@ -1,0 +1,20 @@
+# Rendered output; the sources are the .qmd files.
+*.html
+*.docx
+*.pdf
+*_files/
+.quarto/
+
+# Keep the Word reference document and the measurement harness, which are
+# sources here rather than output.
+!templates/*.docx
+!visual-editor-rtl/bidi-harness.html
+
+# Rasterized copies of SVG figures; rasterize_svg.py regenerates them.
+example/media/*.png
+
+__pycache__/
+*.pyc
+
+/.quarto/
+**/*.quarto_ipynb

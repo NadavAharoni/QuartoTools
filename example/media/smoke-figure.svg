@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="120" viewBox="0 0 360 120">
+  <rect x="0" y="0" width="360" height="120" fill="#ffffff"/>
+  <rect x="20" y="30" width="150" height="28" fill="#c8ddf0" stroke="#40566b"/>
+  <rect x="190" y="30" width="150" height="28" fill="#f0dcc8" stroke="#6b5640"/>
+  <text x="95" y="49" text-anchor="middle" font-family="David, serif" font-size="15">HP</text>
+  <text x="265" y="49" text-anchor="middle" font-family="David, serif" font-size="15">HG</text>
+  <line x1="170" y1="44" x2="190" y2="44" stroke="#40566b" stroke-width="2"/>
+  <text x="180" y="90" text-anchor="middle" font-family="David, serif" font-size="13">קטע משותף</text>
+</svg>

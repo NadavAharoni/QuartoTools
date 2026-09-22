@@ -1,0 +1,28 @@
+# Project defaults for every .qmd under this folder, so a document does not have
+# to name its own Word template or stylesheet. Here it serves two purposes: it
+# makes example/smoke-test.qmd renderable, and it is the file to copy into a
+# document repository as a starting point.
+#
+# Paths below are relative to the folder holding this file. In a document
+# repository that keeps QuartoTools as a sibling checkout, write them as
+# ../QuartoTools/templates/hebrew.docx and so on.
+#
+# Render with render.py, which also rasterizes SVG figures; Word cannot embed SVG.
+project:
+  type: default
+
+# Hebrew, right to left, for every document unless it says otherwise. The tag
+# must be he-IL and not he: with the bare tag Word picks the wrong font, which
+# is the bug templates/hebrew.docx exists to fix. See upstream/pandoc-issue-lang-bidi.md.
+lang: he-IL
+dir: rtl
+
+format:
+  docx:
+    reference-doc: templates/hebrew.docx
+    # Pandoc cannot embed SVG in .docx, so Word gets the rasterized copy that
+    # scripts/rasterize_svg.py writes beside each vector original. render.py
+    # runs the rasterizer before calling quarto.
+    filters: [filters/svg-to-png.lua]
+  html:
+    css: rtl-fixes.css

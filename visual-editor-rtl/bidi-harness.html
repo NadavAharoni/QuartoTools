@@ -1,0 +1,83 @@
+<meta charset="utf-8">
+<title>bidi candidates</title>
+<style>
+  body { font-family: David, "Segoe UI", sans-serif; font-size: 17px; margin: 0; padding: 12px; }
+  .case { border: 1px solid #bbb; margin-bottom: 14px; padding: 8px 10px; }
+  .case > h2 { font: bold 13px "Segoe UI"; color: #a00; margin: 0 0 6px; letter-spacing: .02em; }
+  .pm { border: 1px dashed #ccc; padding: 6px 8px; background: #fff; }
+  .pm p, .pm h3 { margin: 4px 0; }
+  .pm h3 { font-size: 19px; }
+
+  /* B: global rtl on the editor surface */
+  .b .pm { direction: rtl; }
+
+  /* C: per-block plaintext only */
+  .c .pm p, .c .pm h3 { unicode-bidi: plaintext; }
+
+  /* D: plaintext + text-align start */
+  .d .pm p, .d .pm h3 { unicode-bidi: plaintext; text-align: start; }
+
+  /* E: plaintext + explicit rtl base, so alignment has something to resolve against */
+  .e .pm { direction: rtl; }
+  .e .pm p, .e .pm h3 { unicode-bidi: plaintext; text-align: start; }
+</style>
+
+<div class="case a"><h2>A — baseline (no change): what you see today</h2>
+  <div class="pm" contenteditable="true">
+    <h3>האלגוריתם של שמידמן (2018)</h3>
+    <p>כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p>MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p>The English paragraph should stay left-to-right.</p>
+    <p>ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>
+
+<div class="case b"><h2>B — .ProseMirror { direction: rtl }</h2>
+  <div class="pm" contenteditable="true">
+    <h3>האלגוריתם של שמידמן (2018)</h3>
+    <p>כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p>MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p>The English paragraph should stay left-to-right.</p>
+    <p>ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>
+
+<div class="case c"><h2>C — blocks { unicode-bidi: plaintext }</h2>
+  <div class="pm" contenteditable="true">
+    <h3>האלגוריתם של שמידמן (2018)</h3>
+    <p>כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p>MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p>The English paragraph should stay left-to-right.</p>
+    <p>ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>
+
+<div class="case d"><h2>D — blocks { unicode-bidi: plaintext; text-align: start }</h2>
+  <div class="pm" contenteditable="true">
+    <h3>האלגוריתם של שמידמן (2018)</h3>
+    <p>כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p>MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p>The English paragraph should stay left-to-right.</p>
+    <p>ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>
+
+<div class="case e"><h2>E — container rtl + blocks plaintext + text-align start</h2>
+  <div class="pm" contenteditable="true">
+    <h3>האלגוריתם של שמידמן (2018)</h3>
+    <p>כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p>MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p>The English paragraph should stay left-to-right.</p>
+    <p>ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>
+
+<div class="case f"><h2>F — HTML dir="auto" per block (what a JS plugin would do)</h2>
+  <div class="pm" contenteditable="true">
+    <h3 dir="auto">האלגוריתם של שמידמן (2018)</h3>
+    <p dir="auto">כפי שכתבתי בעדכון הקודם, מימשתי את האלגוריתם של שמידמן ויצרתי ויזואליזציה.</p>
+    <p dir="auto">MSM מוצא קטעים יותר ארוכים מזה של שמידמן.</p>
+    <p dir="auto">The English paragraph should stay left-to-right.</p>
+    <p dir="auto">ב-@fig-2 יש תיאור סכמטי של "קובית ההמשך".</p>
+  </div>
+</div>

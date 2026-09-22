@@ -1,0 +1,51 @@
+/* RTL touch-ups Quarto's stylesheets miss.
+   Quarto flips the page direction from `dir: rtl`, but a few elements keep a
+   hard-coded left alignment because their CSS predates the RTL support. */
+
+/* David, with fallbacks: the free Linux clone, then another Hebrew serif, then
+   any serif — so the page still reads correctly off this machine. */
+:root {
+  --hebrew-serif: David, "David CLM", "David Libre", FrankRuehl, "Frank Ruehl CLM", serif;
+}
+
+body,
+.reveal,
+.reveal p,
+.reveal li,
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  font-family: var(--hebrew-serif);
+}
+
+/* Headings inherit the body font by default in some themes but not all. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--hebrew-serif);
+}
+
+/* Leave monospace alone — David has no monospace design, and code needs
+   fixed advance widths. */
+code, pre, kbd, samp {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+/* Figure and table captions inherit `text-align: left` from the base theme. */
+[dir="rtl"] figcaption,
+[dir="rtl"] .figure-caption,
+[dir="rtl"] caption,
+[dir="rtl"] .quarto-figure figcaption {
+  text-align: right;
+}
+
+/* Table header cells default to left even when the column is right-aligned. */
+[dir="rtl"] table th {
+  text-align: right;
+}
+
+/* Keep a Latin-script run (MSM, passim, skip-grams) from dragging the
+   surrounding Hebrew line's base direction with it. */
+[dir="rtl"] code,
+[dir="rtl"] kbd {
+  direction: ltr;
+  unicode-bidi: embed;
+}

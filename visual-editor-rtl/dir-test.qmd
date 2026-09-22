@@ -1,0 +1,31 @@
+---
+title: "בדיקת כיוון לפי פסקה"
+lang: he-IL
+dir: rtl
+format:
+  html:
+    embed-resources: true
+  docx: default
+---
+
+## ברירת מחדל
+
+פסקה עברית רגילה, ללא סימון מיוחד.
+
+MSM מוצא קטעים יותר ארוכים מזה של שמידמן — פסקה שמתחילה במילה לטינית.
+
+## פסקה מסומנת כ-LTR
+
+::: {dir="ltr"}
+This paragraph is explicitly marked left-to-right, so it should be left-aligned even inside a right-to-left document.
+:::
+
+## פסקה מסומנת כ-RTL
+
+::: {dir="rtl"}
+MSM מוצא קטעים יותר ארוכים מזה של שמידמן — הפסקה מסומנת במפורש כ-RTL, ולכן היא אמורה להיות מיושרת לימין גם אם היא מתחילה במילה לטינית.
+:::
+
+## סימון פנימי
+
+טקסט עברי עם [an explicitly LTR span]{dir="ltr"} בתוכו.

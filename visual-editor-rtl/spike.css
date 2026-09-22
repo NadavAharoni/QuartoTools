@@ -1,0 +1,74 @@
+
+/* ===== RTL SPIKE — added by hand, not part of the extension =================
+   Experiment for Hebrew authoring in the Quarto visual editor, which otherwise
+   uses an LTR base direction regardless of the document's `dir: rtl`.
+
+   This file is appended to the extension's own style.css by install.py, which
+   is in the same folder as this file. Do not edit the copy inside the
+   extension; edit this one and reinstall.
+
+   Two mutually exclusive options. OPTION 1 is active; to compare, comment it
+   out and uncomment OPTION 2, then run install.py --remove, install.py, and
+   "Developer: Reload Window" in VS Code.
+
+   To remove it entirely, run install.py --remove.
+   ------------------------------------------------------------------------- */
+
+/* OPTION 1 — per-paragraph automatic direction, no configuration needed.
+   Equivalent to HTML dir="auto": each block takes its direction from its first
+   strong directional character. Known weakness: a paragraph that opens with a
+   Latin word ("MSM מוצא...", "passim לא...") resolves left-to-right.
+
+   `text-align: start` is required, not redundant. In isolation `plaintext` also
+   fixes alignment, because the initial `start` resolves against the direction
+   the algorithm derives. Inside VS Code the blocks inherit a computed
+   `text-align: left` from the webview's own styles, and an inherited computed
+   value cannot be re-resolved — so the text flows right-to-left but stays
+   left-aligned. Declaring `start` here restores the resolution. */
+.ProseMirror p,
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3,
+.ProseMirror h4, .ProseMirror h5, .ProseMirror h6,
+.ProseMirror li, .ProseMirror blockquote, .ProseMirror td, .ProseMirror th,
+.ProseMirror figcaption, .ProseMirror dt, .ProseMirror dd {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+
+/* OPTION 1b — respect an explicit direction where one is marked.
+   REQUIRED alongside Option 1 if you mark paragraphs by hand. `plaintext`
+   re-detects direction from the first strong character and therefore *ignores*
+   an inherited `dir`, so `::: {dir="rtl"}` would have no effect on its own.
+   `isolate` keeps the direction inherited from the marked ancestor instead of
+   re-detecting, and `text-align: start` then resolves against it.
+
+   In the .qmd, mark a block or a phrase:
+       ::: {dir="rtl"}
+       MSM מוצא קטעים יותר ארוכים ...
+       :::
+       טקסט עברי עם [an LTR phrase]{dir="ltr"} בתוכו.
+   Both survive into HTML and Word output, so this is real markup, not a
+   display-only hint. */
+.ProseMirror [dir] p,
+.ProseMirror [dir] h1, .ProseMirror [dir] h2, .ProseMirror [dir] h3,
+.ProseMirror [dir] h4, .ProseMirror [dir] h5, .ProseMirror [dir] h6,
+.ProseMirror [dir] li, .ProseMirror [dir] blockquote,
+.ProseMirror [dir] td, .ProseMirror [dir] th, .ProseMirror [dir] figcaption,
+.ProseMirror p[dir], .ProseMirror h1[dir], .ProseMirror h2[dir],
+.ProseMirror h3[dir], .ProseMirror h4[dir], .ProseMirror h5[dir],
+.ProseMirror h6[dir], .ProseMirror li[dir], .ProseMirror blockquote[dir] {
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+/* OPTION 2 — whole surface right-to-left, matching what `dir: rtl` produces in
+   the rendered output. Embedded Latin runs are ordered by the bidi algorithm.
+   English-only paragraphs become right-aligned, which is correct inside a Hebrew
+   document and is what the HTML output already does. Needs no per-paragraph
+   markup at all, so for a document that is mostly Hebrew this is less work than
+   Option 1 + 1b.
+
+.ProseMirror {
+  direction: rtl;
+}
+*/
+/* ===== end RTL spike ===================================================== */
