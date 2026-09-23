@@ -16,10 +16,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import atexit
 import re
+import shutil
 import struct
 import subprocess
 import sys
+import tempfile
+import time
 import zlib
 from pathlib import Path
 
@@ -91,13 +95,34 @@ def set_png_dpi(png: Path, dpi: float) -> None:
     png.write_bytes(b''.join(out))
 
 
+_profile: Path | None = None
+
+
+def profile_dir() -> Path:
+    """A private browser profile, made once and thrown away at exit.
+
+    Without it, launching Edge while a browser is already open can hand the
+    command to that running instance, which exits 0 and does nothing: no
+    screenshot, no error, no output at all. A profile of its own forces a real
+    browser to start.
+    """
+    global _profile
+    if _profile is None:
+        _profile = Path(tempfile.mkdtemp(prefix="rasterize-svg-"))
+        atexit.register(shutil.rmtree, _profile, ignore_errors=True)
+    return _profile
+
+
 def screenshot(svg: Path, out: Path, edge: Path, scale: float,
                width: int, height: int) -> subprocess.CompletedProcess:
-    return subprocess.run(
+    result = subprocess.run(
         [
             str(edge),
             "--headless",
             "--disable-gpu",
+            f"--user-data-dir={profile_dir()}",
+            "--no-first-run",
+            "--no-default-browser-check",
             f"--screenshot={out.resolve()}",
             # The window is sized in CSS pixels; the scale factor multiplies the
             # captured raster. Scaling both would leave the figure in one corner.
@@ -109,6 +134,13 @@ def screenshot(svg: Path, out: Path, edge: Path, scale: float,
         ],
         capture_output=True, text=True, errors="replace",
     )
+    # Edge can return before the file lands, so give it a moment rather than
+    # calling a slow write a failure.
+    for _ in range(20):
+        if out.exists():
+            break
+        time.sleep(0.25)
+    return result
 
 
 def rasterize(svg: Path, edge: Path, scale: float, attempts: int = 2) -> Path:
