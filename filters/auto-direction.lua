@@ -69,6 +69,34 @@ end
 local WRAPPABLE = {Para = true, Plain = true, Header = true, LineBlock = true}
 local CONTAINERS = {Div = true, BlockQuote = true, Figure = true}
 
+-- Quarto represents anything with a caption and a label -- a figure, a labelled
+-- table -- as a div of its own carrying `__quarto_custom` attributes, with
+-- scaffold divs inside holding the image and the caption. It takes that
+-- structure apart again later, and anything added in the middle is lost with it:
+-- wrapping the caption in a div of our own made the caption disappear from Word
+-- entirely. So nothing is ever inserted inside one of these.
+local function quarto_custom(block)
+  return block.t == 'Div' and block.attributes
+     and (block.attributes.__quarto_custom
+          or block.attributes.__quarto_custom_scaffold)
+end
+
+local function holds_table(block)
+  local found = false
+  pandoc.walk_block(block, {Table = function() found = true end})
+  return found
+end
+
+-- Give every table inside this subtree a direction, by attribute only. The
+-- walker hands out copies, so the changed table has to be returned and the
+-- rebuilt block used in place of the original.
+local function set_table_dir(block, dir)
+  return pandoc.walk_block(block, {Table = function(tbl)
+    tbl.attr.attributes.dir = dir
+    return tbl
+  end})
+end
+
 local function process(blocks, inherited, stated)
   local out = {}
   for _, block in ipairs(blocks) do
@@ -76,6 +104,19 @@ local function process(blocks, inherited, stated)
       -- A stated direction is an instruction, not a starting point: inside it
       -- nothing is examined, only carried down to the tables that need it.
       block.content = process(block.content, block.attributes.dir, true)
+      table.insert(out, block)
+    elseif quarto_custom(block) then
+      local dir = stated and inherited or (detect(stringify(block)) or inherited)
+      if FORMAT == 'docx' then
+        -- The marker goes before the whole float, never inside it. The script
+        -- that reads it looks forward for the next table, so a caption
+        -- paragraph in between makes no difference.
+        if dir == 'rtl' and holds_table(block) then
+          table.insert(out, pandoc.RawBlock('openxml', MARKER))
+        end
+      else
+        block = set_table_dir(block, dir)
+      end
       table.insert(out, block)
     elseif CONTAINERS[block.t] then
       block.content = process(block.content, inherited, stated)

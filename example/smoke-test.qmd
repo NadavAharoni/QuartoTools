@@ -33,6 +33,8 @@ MSM מוצא קטעים ארוכים יותר מאשר האלגוריתם הקו
 | passim | text reuse    |
 | MSM    | maximal match |
 
-![שני חיבורים וקטע משותף](media/smoke-figure.svg)
+![שני חיבורים וקטע משותף.\
+  A caption on two lines, with a label, so that Quarto wraps it in a float:
+  both lines must survive into Word.](media/smoke-figure.svg){#fig-smoke}
 
 English text

@@ -78,6 +78,13 @@ A div that states a direction wins outright, and nothing inside it is examined, 
 override is never second-guessed. It works the other way too: `::: {dir="ltr"}` forces a
 passage left to right.
 
+One thing the filter deliberately does not touch: anything Quarto has wrapped in a float,
+which is what it does to a figure or a table that carries a label. Those carry
+`__quarto_custom` attributes and are taken apart again later, and anything inserted inside
+one is lost with it -- wrapping a caption cost the caption itself, which vanished from Word
+while still showing in HTML. A labelled table still gets its direction, from a marker placed
+before the float rather than inside it.
+
 How that direction reaches each output differs, and the table case is the awkward one.
 A paragraph in Word becomes `w:bidi`, and in HTML `rtl-fixes.css` sets
 `unicode-bidi: plaintext`, which is the same rule expressed natively. A table in HTML gets
