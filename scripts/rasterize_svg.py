@@ -8,6 +8,12 @@ project's way of rendering SVG (see CLAUDE.md) and present on every Windows box.
 Pair it with `filters/svg-to-png.lua`, which points docx output at the PNG while
 HTML keeps the vector original.
 
+The raster of `figure.svg` is written beside it as `figure.svg.png`, never as
+`figure.png`. The double extension marks it as generated, so one ignore rule
+(`*.svg.png`) keeps every raster out of git while a hand-made PNG such as a
+screenshot is tracked like any other file, and the raster can never overwrite
+a hand-made `figure.png` that happens to share the figure's name.
+
 Usage:
     python rasterize_svg.py media/media/image4.svg
     python rasterize_svg.py --all media          # every .svg under media/
@@ -145,7 +151,7 @@ def screenshot(svg: Path, out: Path, edge: Path, scale: float,
 
 def rasterize(svg: Path, edge: Path, scale: float, attempts: int = 2) -> Path:
     width, height = svg_size(svg)
-    out = svg.with_suffix(".png")
+    out = svg.with_name(svg.name + ".png")      # figure.svg -> figure.svg.png
 
     # Headless Edge fails now and then for reasons that have nothing to do with
     # the file -- a profile still locked by a previous run, a browser update in

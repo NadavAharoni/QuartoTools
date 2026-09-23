@@ -40,6 +40,7 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `filters/svg-to-png.lua` | sends Word output to the rasterized copy of each SVG, while HTML keeps the vector |
 | `scripts/rasterize_svg.py` | SVG to PNG through headless Edge, so no `rsvg-convert` is needed |
 | | it renders at 2x and records 192 dpi in the PNG, so the figure keeps its size and gains detail |
+| | the raster of `figure.svg` is `figure.svg.png`, so `*.svg.png` is the only ignore rule rasters need |
 | `filters/auto-direction.lua` | gives each paragraph and table its own direction, during the render |
 | `scripts/set_docx_direction.py` | sets the direction of the tables and captions the filter cannot reach, after the render |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |

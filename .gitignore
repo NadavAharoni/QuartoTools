@@ -10,8 +10,9 @@
 !templates/*.docx
 !visual-editor-rtl/bidi-harness.html
 
-# Rasterized copies of SVG figures; rasterize_svg.py regenerates them.
-example/media/**/*.png
+# Rasters that scripts/rasterize_svg.py writes beside each SVG, named
+# figure.svg.png. Any other PNG, a screenshot for instance, is tracked.
+*.svg.png
 
 __pycache__/
 *.pyc
