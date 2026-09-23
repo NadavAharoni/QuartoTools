@@ -40,8 +40,8 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `filters/svg-to-png.lua` | sends Word output to the rasterized copy of each SVG, while HTML keeps the vector |
 | `scripts/rasterize_svg.py` | SVG to PNG through headless Edge, so no `rsvg-convert` is needed |
 | | it renders at 2x and records 192 dpi in the PNG, so the figure keeps its size and gains detail |
-| `filters/rtl-tables.lua` | marks the tables inside a `dir="rtl"` div, during the render |
-| `scripts/set_docx_rtl_tables.py` | lays those marked tables out right to left, after the render |
+| `filters/auto-direction.lua` | gives each paragraph and table its own direction, during the render |
+| `scripts/set_docx_rtl_tables.py` | lays the marked tables out right to left, after the render |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |
@@ -56,33 +56,35 @@ Given a bare `he` it throws away the reference document's Hebrew font and falls 
 Times New Roman, even though the file plainly says David. Nothing warns you. The full
 measurement is in `upstream/pandoc-issue-lang-bidi.md`.
 
-**Tables are a separate problem from text.** `dir: rtl` reaches a table's cell paragraphs
-but not the table itself, and Word lays a table out left to right unless the table carries
-`w:bidiVisual`. Pandoc never writes that element and no filter can add it, so wrap the
-table in a right-to-left div:
+**Direction is decided per paragraph and per table, automatically.** A document that sets
+`dir: rtl` would otherwise lay everything out right to left, so an English sentence comes
+out right-aligned with its full stop on the left and a table of English terms comes out
+with its first column on the right. `filters/auto-direction.lua` applies the Unicode rule
+instead: each paragraph and each table takes its direction from its own first strong
+character, the same rule a browser applies for `dir="auto"`. Nothing has to be marked up.
+
+The rule has one known failure, and it is common in Hebrew academic prose: a Hebrew
+sentence that opens with a Latin term reads as left to right.
 
 ```markdown
+MSM מוצא קטעים ארוכים יותר מאשר האלגוריתם הקודם.     <- comes out left to right
+
 ::: {dir="rtl"}
-| עמודה  |    ערך |
-|--------|-------:|
-| התאמות |    233 |
+MSM מוצא קטעים ארוכים יותר מאשר האלגוריתם הקודם.     <- correct
 :::
 ```
 
-The same div marks a passage that should read the other way. In a Hebrew document every
-paragraph is right to left, so an English sentence comes out right-aligned with its full
-stop or colon on the left. Wrap it to fix that:
+A div that states a direction wins outright, and nothing inside it is examined, so a hand
+override is never second-guessed. It works the other way too: `::: {dir="ltr"}` forces a
+passage left to right.
 
-```markdown
-::: {dir="ltr"}
-An English paragraph inside a Hebrew document, ending with a colon:
-:::
-```
-
-`filters/rtl-tables.lua` marks those tables during the render and
-`scripts/set_docx_rtl_tables.py` sets the layout direction on each marked table afterwards.
-`render.py` runs both, so a document only has to use the div. Tables outside such a div are
-left alone, which is what a table of English terms wants.
+How that direction reaches each output differs, and the table case is the awkward one.
+A paragraph in Word becomes `w:bidi`, and in HTML `rtl-fixes.css` sets
+`unicode-bidi: plaintext`, which is the same rule expressed natively. A table in HTML gets
+a `dir` attribute. A table in Word needs `w:bidiVisual` on the table itself, which nothing
+in the pandoc AST can set -- so the filter leaves a comment before the table and
+`scripts/set_docx_rtl_tables.py` turns it into the real element afterwards. `render.py`
+runs that script, so this is invisible in normal use.
 
 Two findings behind this, both measured against Word itself:
 

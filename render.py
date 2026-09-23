@@ -82,7 +82,7 @@ def main() -> None:
         render += ['--to', args.to]
     run(render, cwd=root)
 
-    # Tables marked by filters/rtl-tables.lua still need their layout direction
+    # Tables marked by filters/auto-direction.lua still need their layout direction
     # set, which only the rendered file can carry.
     run([sys.executable, str(HERE / 'scripts' / 'set_docx_rtl_tables.py'),
          str(qmd.with_suffix('.docx')), '--if-exists'], cwd=root)

@@ -23,9 +23,13 @@ format:
     # Pandoc cannot embed SVG in .docx, so Word gets the rasterized copy that
     # scripts/rasterize_svg.py writes beside each vector original. render.py
     # runs the rasterizer before calling quarto.
-    # rtl-tables marks the tables inside a dir="rtl" div; render.py finishes
-    # the job after quarto is done, because a table's layout direction cannot
-    # be set from a filter.
-    filters: [filters/svg-to-png.lua, filters/rtl-tables.lua]
+    # auto-direction also marks the tables that must be laid out right to
+    # left; render.py finishes that job after quarto is done, because a table's
+    # layout direction cannot be set from a filter.
+    filters: [filters/svg-to-png.lua, filters/auto-direction.lua]
   html:
     css: rtl-fixes.css
+    # The same filter gives each table its direction here, as a dir attribute.
+    # Paragraphs need no filter in HTML: rtl-fixes.css sets unicode-bidi:
+    # plaintext, which is the same rule expressed natively.
+    filters: [filters/auto-direction.lua]

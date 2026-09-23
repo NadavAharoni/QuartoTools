@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lay out right-to-left the tables that `filters/rtl-tables.lua` marked.
+"""Lay out right-to-left the tables that `filters/auto-direction.lua` marked.
 
 Word lays a table out left to right unless the table itself carries
 `w:bidiVisual`, so a Hebrew table comes out with its first column on the left.
@@ -11,9 +11,9 @@ Two things about this are easy to get wrong, and both were measured:
 * `w:bidiVisual` must therefore go on each `w:tbl` that needs it, which no
   pandoc filter can do -- a filter cannot reach a table's properties.
 
-So `filters/rtl-tables.lua` writes a comment into the output before each table
-inside a `dir="rtl"` div, and this script turns those comments into the real
-thing. Tables with no marker are left alone, which is the point: a document can
+So `filters/auto-direction.lua` writes a comment into the output before each
+table that must be right to left, and this script turns those comments into the
+real thing. Tables with no marker are left alone, which is the point: a document can
 hold both right-to-left and left-to-right tables.
 
 `render.py` runs this after rendering to docx. To run it by hand:

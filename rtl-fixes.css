@@ -49,3 +49,52 @@ code, pre, kbd, samp {
   direction: ltr;
   unicode-bidi: embed;
 }
+
+/* ---------------------------------------------------------------------------
+   Per-paragraph direction, from the first strong character.
+
+   In a document that is right to left throughout, an English paragraph is laid
+   out right to left too: it comes out right-aligned with its full stop on the
+   left. `unicode-bidi: plaintext` applies the Unicode rule instead — each block
+   takes its direction from its own first strong character — which is what
+   `dir="auto"` does in HTML and what filters/auto-direction.lua does for Word.
+   The three were measured to agree.
+
+   `text-align: start` is not redundant here. On its own, `plaintext` fixes the
+   flow but a block that inherits a computed `text-align` keeps it, because an
+   inherited computed value cannot be re-resolved against the new direction.
+   Declaring `start` restores the resolution.
+
+   Known weakness, and the reason for the override below: a Hebrew sentence
+   that opens with a Latin term (`MSM מוצא…`, `passim לא…`) reads as left to
+   right. Wrap it in `::: {dir="rtl"}` to say otherwise.
+   --------------------------------------------------------------------------- */
+p, h1, h2, h3, h4, h5, h6,
+li, blockquote, td, th, figcaption, caption, dt, dd {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+
+/* A stated direction must win. `plaintext` re-detects direction and so ignores
+   an inherited `dir`, which would make `::: {dir="rtl"}` do nothing; `isolate`
+   keeps the direction the marked ancestor gives, and `start` resolves against
+   it.
+
+   `html` and `body` are excluded on purpose. Quarto puts `dir="rtl"` on `<html>`
+   for the whole page, so a bare `[dir] p` would match every paragraph in the
+   document and, being the more specific rule, would cancel the automatic
+   direction above. Only a div or span that states its own direction counts as
+   an override. */
+[dir]:not(html):not(body) p,
+[dir]:not(html):not(body) h1, [dir]:not(html):not(body) h2,
+[dir]:not(html):not(body) h3, [dir]:not(html):not(body) h4,
+[dir]:not(html):not(body) h5, [dir]:not(html):not(body) h6,
+[dir]:not(html):not(body) li, [dir]:not(html):not(body) blockquote,
+[dir]:not(html):not(body) td, [dir]:not(html):not(body) th,
+[dir]:not(html):not(body) figcaption, [dir]:not(html):not(body) caption,
+[dir]:not(html):not(body) dt, [dir]:not(html):not(body) dd,
+p[dir], h1[dir], h2[dir], h3[dir], h4[dir], h5[dir], h6[dir],
+li[dir], blockquote[dir] {
+  unicode-bidi: isolate;
+  text-align: start;
+}

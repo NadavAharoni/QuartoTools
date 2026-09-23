@@ -20,10 +20,12 @@ title: "בדיקת תבנית"
 | מילים  | 12,469 |
 :::
 
-::: {dir="ltr"}
-A table outside the div stays left to right, which is what a table of English terms
-wants. This paragraph sits in an ltr div, so it reads left to right and its full stop
-stays on the right, where an English sentence expects it.
+This paragraph is in no div at all. It starts with a Latin letter, so the first strong character makes it left to right, and its full stop stays on the right where an English sentence expects it.
+
+MSM מוצא קטעים ארוכים יותר מאשר האלגוריתם הקודם. פסקה עברית שנפתחת במונח לטיני נקראת כשמאל־לימין, וזאת החולשה הידועה של הכלל.
+
+::: {dir="rtl"}
+MSM מוצא קטעים ארוכים יותר מאשר האלגוריתם הקודם. אותה פסקה, עטופה בדיב שקובע ימין־לשמאל, נקראת נכון.
 :::
 
 | Term   | Meaning       |
@@ -32,3 +34,5 @@ stays on the right, where an English sentence expects it.
 | MSM    | maximal match |
 
 ![שני חיבורים וקטע משותף](media/smoke-figure.svg)
+
+English text
