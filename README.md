@@ -49,6 +49,17 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `example/slides_demo.qmd` | a Hebrew lecture deck, for `revealjs` |
 | `scripts/generate_repetition_schematic.py` | draws a figure as SVG, as an example of the script-generated figure convention |
 
+### Editing the template: styles, never the sample text
+
+The template's body is a page of sample paragraphs, one per style. Formatting applied to
+that sample text does nothing: pandoc copies **style definitions** out of a reference
+document and ignores its body entirely. A page break applied to the words "Heading 1" on
+that page is invisible in every rendered document, with no warning.
+
+Always go through **Styles pane -> right-click the style -> Modify -> Format -> ...**. Two
+settings that live there now: `Heading 1` starts a new page (Format -> Paragraph -> Line and
+Page Breaks -> Page break before), and `Image Caption` leaves 12 pt after it.
+
 ### Spacing around a figure caption
 
 The gap below a figure caption is the `Image Caption` style's space-after, in
