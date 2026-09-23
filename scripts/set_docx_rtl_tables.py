@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-"""Make Word lay tables out right to left, in a .docx or in a reference template.
+"""Lay out right-to-left the tables that `filters/rtl-tables.lua` marked.
 
-`dir: rtl` reaches paragraphs but not tables. A Word table is laid out left to
-right unless its properties carry `w:bidiVisual`, and the text inside its cells
-follows the cell paragraphs, which need `w:bidi`. Pandoc gives every table it
-writes the style named `Table` from the reference document, so setting both on
-that style is enough for every table in every document rendered from it.
+Word lays a table out left to right unless the table itself carries
+`w:bidiVisual`, so a Hebrew table comes out with its first column on the left.
+Two things about this are easy to get wrong, and both were measured:
 
-Run it once on the template; the change is then part of `hebrew.docx` and no
-document has to know about it.
+* Setting `w:bidiVisual` on the `Table` **style** does nothing. Word ignores it
+  there, and worse, it then cancels the same setting on the table itself, so a
+  template carrying it prevents the fix from ever working.
+* `w:bidiVisual` must therefore go on each `w:tbl` that needs it, which no
+  pandoc filter can do -- a filter cannot reach a table's properties.
 
-Usage:
-    python quarto/scripts/set_docx_rtl_tables.py quarto/templates/hebrew.docx
-    python quarto/scripts/set_docx_rtl_tables.py <file>.docx --style TableGrid
-    python quarto/scripts/set_docx_rtl_tables.py <file>.docx --check
+So `filters/rtl-tables.lua` writes a comment into the output before each table
+inside a `dir="rtl"` div, and this script turns those comments into the real
+thing. Tables with no marker are left alone, which is the point: a document can
+hold both right-to-left and left-to-right tables.
+
+`render.py` runs this after rendering to docx. To run it by hand:
+
+    python scripts/set_docx_rtl_tables.py <file>.docx
+    python scripts/set_docx_rtl_tables.py <file>.docx --check
 """
 
 from __future__ import annotations
@@ -25,91 +31,87 @@ import sys
 import zipfile
 from pathlib import Path
 
-STYLES = 'word/styles.xml'
+DOCUMENT = 'word/document.xml'
+MARKER = '<!--RTL-TABLE-->'
 BIDI_VISUAL = '<w:bidiVisual/>'
-BIDI_PARA = '<w:pPr><w:bidi/></w:pPr>'
+
+# `w:tblStyle` must stay first inside `w:tblPr`; `w:bidiVisual` belongs right
+# after it. Anywhere else and Word drops the element on open.
+TBL_STYLE = re.compile(r'<w:tblStyle\b[^>]*/>')
+TBL_PR = re.compile(r'<w:tblPr\s*>')
 
 
-def style_block(xml: str, style_id: str) -> re.Match | None:
-    """The whole <w:style> element for this style id, or None."""
-    return re.search(
-        r'<w:style\b[^>]*w:styleId="%s".*?</w:style>' % re.escape(style_id),
-        xml, re.S)
+def add_bidi_visual(table: str) -> tuple[str, bool]:
+    """Put `w:bidiVisual` in this table's properties. Returns (xml, changed)."""
+    if 'bidiVisual' in table:
+        return table, False
+    style = TBL_STYLE.search(table)
+    if style:
+        at = style.end()
+    else:
+        opening = TBL_PR.search(table)
+        if not opening:
+            return table, False
+        at = opening.end()
+    return table[:at] + BIDI_VISUAL + table[at:], True
 
 
-def patch_style(block: str) -> tuple[str, list[str]]:
-    """Add bidiVisual and a right-to-left cell paragraph to one style element."""
-    done = []
-
-    # Schema order inside w:tblPr puts bidiVisual before tblInd, so it goes
-    # first, straight after the opening tag.
-    if BIDI_VISUAL not in block:
-        if '<w:tblPr>' in block:
-            block = block.replace('<w:tblPr>', '<w:tblPr>' + BIDI_VISUAL, 1)
-        elif '<w:tblPr/>' in block:
-            block = block.replace('<w:tblPr/>', '<w:tblPr>' + BIDI_VISUAL + '</w:tblPr>', 1)
-        else:
-            block = block.replace('</w:style>', '<w:tblPr>' + BIDI_VISUAL + '</w:tblPr></w:style>', 1)
-        done.append('table laid out right to left')
-
-    # w:pPr precedes w:tblPr in a style element.
-    if '<w:bidi/>' not in block:
-        if '<w:pPr>' in block:
-            block = block.replace('<w:pPr>', '<w:pPr><w:bidi/>', 1)
-        else:
-            anchor = '<w:tblPr>' if '<w:tblPr>' in block else '</w:style>'
-            block = block.replace(anchor, BIDI_PARA + anchor, 1)
-        done.append('cell text right to left')
-
-    return block, done
+def convert(xml: str) -> tuple[str, int]:
+    """Apply every marker, and remove the markers. Returns (xml, count)."""
+    done = 0
+    while True:
+        at = xml.find(MARKER)
+        if at < 0:
+            break
+        start = xml.find('<w:tbl>', at)
+        if start < 0:
+            sys.exit(f'a {MARKER} marker is not followed by a table')
+        end = xml.index('</w:tbl>', start) + len('</w:tbl>')
+        table, changed = add_bidi_visual(xml[start:end])
+        done += changed
+        xml = xml[:at] + xml[at + len(MARKER):start] + table + xml[end:]
+    return xml, done
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('docx', help='.docx file or reference template to patch')
-    ap.add_argument('--style', default='Table',
-                    help='table style to patch (default: Table, the one pandoc uses)')
-    ap.add_argument('--check', action='store_true',
-                    help='report whether the style is already right to left, change nothing')
-    args = ap.parse_args()
+    parser.add_argument('docx', type=Path, help='the rendered .docx to fix up')
+    parser.add_argument('--check', action='store_true',
+                        help='report what is there, change nothing')
+    parser.add_argument('--if-exists', action='store_true',
+                        help='do nothing when the file is missing, rather than fail')
+    args = parser.parse_args()
 
-    path = Path(args.docx)
-    if not path.is_file():
-        sys.exit(f'no such file: {path}')
+    if not args.docx.is_file():
+        if args.if_exists:
+            return
+        sys.exit(f'no such file: {args.docx}')
 
-    with zipfile.ZipFile(path) as zf:
-        names = zf.namelist()
-        if STYLES not in names:
-            sys.exit(f'{path} has no {STYLES}; is it a .docx?')
-        payload = {name: zf.read(name) for name in names}
-
-    xml = payload[STYLES].decode('utf-8')
-    found = style_block(xml, args.style)
-    if not found:
-        sys.exit(f'no table style named {args.style!r} in {path}')
-
-    patched, done = patch_style(found.group(0))
+    with zipfile.ZipFile(args.docx) as archive:
+        parts = {name: archive.read(name) for name in archive.namelist()}
+    xml = parts[DOCUMENT].decode('utf-8')
 
     if args.check:
-        print(f'{path}: style {args.style} is '
-              + ('already right to left' if not done else 'left to right (' + ', '.join(done) + ' missing)'))
+        tables = xml.count('<w:tbl>')
+        print(f'{args.docx.name}: {tables} tables, '
+              f'{xml.count(MARKER)} still marked, '
+              f'{xml.count("bidiVisual")} laid out right to left')
         return
 
-    if not done:
-        print(f'{path}: style {args.style} is already right to left, nothing to do')
+    fixed, done = convert(xml)
+    if not done and fixed == xml:
+        print(f'{args.docx.name}: no marked tables, nothing to do')
         return
 
-    xml = xml[:found.start()] + patched + xml[found.end():]
-    payload[STYLES] = xml.encode('utf-8')
-
-    backup = path.with_suffix(path.suffix + '.bak')
-    shutil.copy2(path, backup)
-    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as out:
-        for name in names:
-            out.writestr(name, payload[name])
-
-    print(f'{path}: {", ".join(done)} (previous file kept at {backup.name})')
+    parts[DOCUMENT] = fixed.encode('utf-8')
+    backup = args.docx.with_suffix('.docx.orig')
+    shutil.copy2(args.docx, backup)
+    with zipfile.ZipFile(args.docx, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for name, blob in parts.items():
+            archive.writestr(name, blob)
+    backup.unlink()
+    print(f'{args.docx.name}: {done} table(s) laid out right to left')
 
 
 if __name__ == '__main__':

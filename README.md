@@ -40,7 +40,8 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `filters/svg-to-png.lua` | sends Word output to the rasterized copy of each SVG, while HTML keeps the vector |
 | `scripts/rasterize_svg.py` | SVG to PNG through headless Edge, so no `rsvg-convert` is needed |
 | | it renders at 2x and records 192 dpi in the PNG, so the figure keeps its size and gains detail |
-| `scripts/set_docx_rtl_tables.py` | makes Word lay tables out right to left; already applied to the template |
+| `filters/rtl-tables.lua` | marks the tables inside a `dir="rtl"` div, during the render |
+| `scripts/set_docx_rtl_tables.py` | lays those marked tables out right to left, after the render |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |
@@ -55,12 +56,31 @@ Given a bare `he` it throws away the reference document's Hebrew font and falls 
 Times New Roman, even though the file plainly says David. Nothing warns you. The full
 measurement is in `upstream/pandoc-issue-lang-bidi.md`.
 
-**Tables are a separate problem from text.** `dir: rtl` reaches paragraphs but not tables,
-which Word lays out left to right unless the table style carries `w:bidiVisual` and its
-cell paragraphs carry `w:bidi`. `scripts/set_docx_rtl_tables.py` sets both on the `Table`
-style, the one pandoc gives every table it writes. It has already been run on
-`templates/hebrew.docx`, so no document has to do anything; run it again with `--check`
-after editing the template in Word, which can drop the setting.
+**Tables are a separate problem from text.** `dir: rtl` reaches a table's cell paragraphs
+but not the table itself, and Word lays a table out left to right unless the table carries
+`w:bidiVisual`. Pandoc never writes that element and no filter can add it, so wrap the
+table in a right-to-left div:
+
+```markdown
+::: {dir="rtl"}
+| עמודה  |    ערך |
+|--------|-------:|
+| התאמות |    233 |
+:::
+```
+
+`filters/rtl-tables.lua` marks those tables during the render and
+`scripts/set_docx_rtl_tables.py` sets the layout direction on each marked table afterwards.
+`render.py` runs both, so a document only has to use the div. Tables outside such a div are
+left alone, which is what a table of English terms wants.
+
+Two findings behind this, both measured against Word itself:
+
+* `w:bidiVisual` on the **`Table` style** does nothing at all -- Word ignores it there.
+  Worse, it then cancels the same setting on the table itself, so a template carrying it
+  stops the working fix from working. Keep it out of `templates/hebrew.docx`.
+* `w:bidiVisual` must sit immediately after `w:tblStyle` inside `w:tblPr`. Put it anywhere
+  else and Word silently drops it when the file is opened.
 
 ### Checking the toolchain
 

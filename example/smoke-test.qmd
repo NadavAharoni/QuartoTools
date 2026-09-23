@@ -20,4 +20,12 @@ title: "בדיקת תבנית"
 | מילים  | 12,469 |
 :::
 
+A table outside the div stays left to right, which is what a table of English
+terms wants:
+
+| Term   | Meaning        |
+|--------|----------------|
+| passim | text reuse     |
+| MSM    | maximal match  |
+
 ![שני חיבורים וקטע משותף](media/smoke-figure.svg)
