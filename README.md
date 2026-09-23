@@ -69,6 +69,16 @@ table in a right-to-left div:
 :::
 ```
 
+The same div marks a passage that should read the other way. In a Hebrew document every
+paragraph is right to left, so an English sentence comes out right-aligned with its full
+stop or colon on the left. Wrap it to fix that:
+
+```markdown
+::: {dir="ltr"}
+An English paragraph inside a Hebrew document, ending with a colon:
+:::
+```
+
 `filters/rtl-tables.lua` marks those tables during the render and
 `scripts/set_docx_rtl_tables.py` sets the layout direction on each marked table afterwards.
 `render.py` runs both, so a document only has to use the div. Tables outside such a div are

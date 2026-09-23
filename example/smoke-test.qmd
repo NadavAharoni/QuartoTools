@@ -20,12 +20,15 @@ title: "בדיקת תבנית"
 | מילים  | 12,469 |
 :::
 
-A table outside the div stays left to right, which is what a table of English
-terms wants:
+::: {dir="ltr"}
+A table outside the div stays left to right, which is what a table of English terms
+wants. This paragraph sits in an ltr div, so it reads left to right and its full stop
+stays on the right, where an English sentence expects it.
+:::
 
-| Term   | Meaning        |
-|--------|----------------|
-| passim | text reuse     |
-| MSM    | maximal match  |
+| Term   | Meaning       |
+|--------|---------------|
+| passim | text reuse    |
+| MSM    | maximal match |
 
 ![שני חיבורים וקטע משותף](media/smoke-figure.svg)
