@@ -49,6 +49,20 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `example/slides_demo.qmd` | a Hebrew lecture deck, for `revealjs` |
 | `scripts/generate_repetition_schematic.py` | draws a figure as SVG, as an example of the script-generated figure convention |
 
+### Spacing around a figure caption
+
+The gap below a figure caption is the `Image Caption` style's space-after, in
+`templates/hebrew.docx`. It is 12 pt; the `Caption` style it inherits from gives only 6 pt,
+which leaves a figure and the paragraph after it looking joined. To change it, open the
+template in Word and use **Styles pane -> Image Caption -> Modify -> Format -> Paragraph ->
+Spacing After**.
+
+Do not try to do this from the document instead. A blank line in the `.qmd` does nothing --
+markdown collapses it -- and the space *above* the caption is direct formatting that pandoc
+writes on the paragraph itself, which no style can override. The `Table Caption` style is
+deliberately left alone, since a table caption sits above its table and space-after would
+push it away from what it describes.
+
 ### Two settings that are the reason the template exists
 
 **`lang` must carry the region: `he-IL`, never `he`.** Pandoc writes the document's `lang`
