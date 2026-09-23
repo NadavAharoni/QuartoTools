@@ -121,6 +121,10 @@ def rasterize(svg: Path, edge: Path, scale: float, attempts: int = 2) -> Path:
     # the message below says what Edge actually complained about, because a bare
     # "failed to rasterize" leaves you with nowhere to start.
     for attempt in range(1, attempts + 1):
+        # Clear any earlier raster first. `out.exists()` is how a run is judged
+        # to have worked, and a leftover PNG would answer for one that did not:
+        # the stale file would be kept, and would keep whatever size it recorded.
+        out.unlink(missing_ok=True)
         result = screenshot(svg, out, edge, scale, width, height)
         if out.exists():
             break
