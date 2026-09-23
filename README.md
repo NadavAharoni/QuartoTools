@@ -41,7 +41,7 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `scripts/rasterize_svg.py` | SVG to PNG through headless Edge, so no `rsvg-convert` is needed |
 | | it renders at 2x and records 192 dpi in the PNG, so the figure keeps its size and gains detail |
 | `filters/auto-direction.lua` | gives each paragraph and table its own direction, during the render |
-| `scripts/set_docx_rtl_tables.py` | lays the marked tables out right to left, after the render |
+| `scripts/set_docx_direction.py` | sets the direction of the tables and captions the filter cannot reach, after the render |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |
@@ -83,14 +83,17 @@ which is what it does to a figure or a table that carries a label. Those carry
 `__quarto_custom` attributes and are taken apart again later, and anything inserted inside
 one is lost with it -- wrapping a caption cost the caption itself, which vanished from Word
 while still showing in HTML. A labelled table still gets its direction, from a marker placed
-before the float rather than inside it.
+before the float rather than inside it. A caption gets its direction afterwards, from
+`scripts/set_docx_direction.py`, which applies the same first-strong-character rule to the
+rendered file -- so `figure 1: The matches between HP and HG.` reads left to right inside a
+Hebrew document, while `תרשים 1: ...` stays right to left.
 
 How that direction reaches each output differs, and the table case is the awkward one.
 A paragraph in Word becomes `w:bidi`, and in HTML `rtl-fixes.css` sets
 `unicode-bidi: plaintext`, which is the same rule expressed natively. A table in HTML gets
 a `dir` attribute. A table in Word needs `w:bidiVisual` on the table itself, which nothing
 in the pandoc AST can set -- so the filter leaves a comment before the table and
-`scripts/set_docx_rtl_tables.py` turns it into the real element afterwards. `render.py`
+`scripts/set_docx_direction.py` turns it into the real element afterwards. `render.py`
 runs that script, so this is invisible in normal use.
 
 Two findings behind this, both measured against Word itself:
