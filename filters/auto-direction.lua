@@ -15,7 +15,7 @@
 --     `unicode-bidi: plaintext`, the same rule expressed natively
 --   * a table in HTML: a `dir` attribute on the table element
 --   * a table in Word: a comment before the table, which
---     `scripts/set_docx_rtl_tables.py` turns into `w:bidiVisual` afterwards.
+--     `scripts/set_docx_direction.py` turns into `w:bidiVisual` afterwards.
 --     Nothing in the pandoc AST can set a table property, hence the detour.
 --     `render.py` runs that script.
 --
