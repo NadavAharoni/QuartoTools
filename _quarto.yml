@@ -17,6 +17,11 @@ project:
 lang: he-IL
 dir: rtl
 
+# Keep quotes as typed. Pandoc's smart-quotes extension turns " into curly
+# quotes, which are wrong in Hebrew, and cannot pair the quote in an acronym
+# like ה"פער".
+from: markdown-smart
+
 format:
   docx:
     reference-doc: templates/hebrew.docx
