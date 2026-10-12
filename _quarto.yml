@@ -17,9 +17,9 @@ project:
 lang: he-IL
 dir: rtl
 
-# Keep quotes as typed. Pandoc's smart-quotes extension turns " into curly
-# quotes, which are wrong in Hebrew, and cannot pair the quote in an acronym
-# like ה"פער".
+# Keep quotes as typed. Pandoc's smart-quotes extension curls " and ', which is
+# wrong in Hebrew: ז"ל comes out as ז”ל and גב' as גב’, and it cannot pair the
+# quote in an acronym like ה"פער".
 from: markdown-smart
 
 format:

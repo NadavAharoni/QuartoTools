@@ -263,6 +263,15 @@ Figures are inline paragraphs with no float, so Word leaves whitespace where a f
 won't fit. Same behaviour as the original hand-written document; tighten with a
 `reference-doc` if it becomes annoying.
 
+### 9. Smart quotes curl Hebrew gershayim and geresh
+
+Pandoc's `smart` extension, on by default, turns `"` and `'` into curly quotes. In Hebrew
+they are abbreviation marks, not quotes: `ז"ל` renders as `ז”ל`, `גב'` as `גב’`, and an
+acronym like `ה"פער` has no closing quote to pair with. `_quarto.yml` sets
+`from: markdown-smart`, which keeps every quote exactly as typed. The cost is that `--`
+and `...` also stay as typed instead of becoming a dash and an ellipsis; type `–` and `…`
+directly where you want them.
+
 ## Why `pptx` fails for Hebrew
 
 Pandoc does not propagate `dir: rtl` into PowerPoint — the generated slides contain zero
