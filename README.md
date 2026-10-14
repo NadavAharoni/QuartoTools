@@ -43,6 +43,8 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | | the raster of `figure.svg` is `figure.svg.png`, so `*.svg.png` is the only ignore rule rasters need |
 | `filters/auto-direction.lua` | gives each paragraph and table its own direction, during the render |
 | `scripts/set_docx_direction.py` | sets the direction of the tables and captions the filter cannot reach, after the render |
+| `filters/wrap-figure.lua` | floats a figure in a `.wrap-left` / `.wrap-right` div beside the text, caption kept under it |
+| `scripts/wrap_docx_figures.py` | in Word, moves each such figure and its caption into a floating text box, after the render |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |

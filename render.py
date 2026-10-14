@@ -88,6 +88,13 @@ def main() -> None:
     run([sys.executable, str(HERE / 'scripts' / 'set_docx_direction.py'),
          str(qmd.with_suffix('.docx')), '--if-exists'], cwd=root)
 
+    # Figures marked .wrap-left / .wrap-right by filters/wrap-figure.lua go into
+    # floating text boxes, which pandoc cannot write. This runs after the
+    # direction fix, which reads paragraphs one level deep and would misread
+    # the paragraphs nested inside a text box.
+    run([sys.executable, str(HERE / 'scripts' / 'wrap_docx_figures.py'),
+         str(qmd.with_suffix('.docx')), '--if-exists'], cwd=root)
+
     if args.font:
         run([sys.executable, str(HERE / 'scripts' / 'set_docx_font.py'),
              str(qmd.with_suffix('.docx')), '--font', args.font, '--if-exists'],

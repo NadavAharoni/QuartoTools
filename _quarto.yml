@@ -31,10 +31,12 @@ format:
     # auto-direction also marks the tables that must be laid out right to
     # left; render.py finishes that job after quarto is done, because a table's
     # layout direction cannot be set from a filter.
-    filters: [filters/svg-to-png.lua, filters/auto-direction.lua]
+    # wrap-figure marks the figures in a .wrap-left / .wrap-right div, which
+    # render.py then floats in text boxes; it must come before auto-direction.
+    filters: [filters/svg-to-png.lua, filters/wrap-figure.lua, filters/auto-direction.lua]
   html:
     css: rtl-fixes.css
     # The same filter gives each table its direction here, as a dir attribute.
     # Paragraphs need no filter in HTML: rtl-fixes.css sets unicode-bidi:
     # plaintext, which is the same rule expressed natively.
-    filters: [filters/auto-direction.lua]
+    filters: [filters/wrap-figure.lua, filters/auto-direction.lua]
