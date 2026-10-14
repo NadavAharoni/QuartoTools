@@ -49,6 +49,8 @@ function Div(div)
         return image
       end,
     })
+    -- A bare number is pixels to pandoc, but not to CSS.
+    if width:match('^[%d.]+$') then width = width .. 'px' end
     local margin = side == 'left'
       and ('0.3em ' .. GAP .. ' 1em 0') or ('0.3em 0 1em ' .. GAP)
     div.attributes.style = string.format('float: %s; width: %s; margin: %s;',
