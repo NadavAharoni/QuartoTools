@@ -156,8 +156,12 @@ def unwrap(text):
 def render_file_diff(old, new, context=1):
     """HTML for one file: only changed paragraphs (+context), word-level marks.
     Returns (html, deleted_words, inserted_words)."""
-    a, _ = unwrap(old)
-    b, b_line = unwrap(new)
+    # Blank lines only separate paragraphs. Left in, they match each other and pull
+    # the alignment askew: an old paragraph gets compared with a block inserted
+    # before its new version.
+    a = [line for line in unwrap(old)[0] if line.strip()]
+    kept = [(line, n) for line, n in zip(*unwrap(new)) if line.strip()]
+    b, b_line = [line for line, _ in kept], [n for _, n in kept]
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     blocks, total_d, total_i = [], 0, 0
     for group in sm.get_grouped_opcodes(context):
