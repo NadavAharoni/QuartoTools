@@ -5,12 +5,13 @@ collected from the trial that moved a set of research updates off Word. They are
 here rather than inside one document repository because none of them are specific to a
 document.
 
-Three separate things live here:
+Four separate things live here:
 
 | Folder | What it does |
 |---|---|
 | the root, `scripts/`, `filters/`, `templates/` | rendering a `.qmd` to Word and HTML with Hebrew set correctly |
 | `visual-editor-rtl/` | making the VS Code visual editor lay text out right to left |
+| `redline/` | word-level change reports for Markdown, readable by someone who never sees `git diff` |
 | `upstream/` | bug reports and a patch aimed at the Quarto and pandoc maintainers |
 
 Everything was tested on Windows with Quarto 1.10, pandoc 3.9 and Python 3.14.
@@ -186,6 +187,40 @@ are silently lost -- the label vanishes from the `.qmd` itself, so a later `@tbl
 simply fails to resolve with no clue that a label ever existed. Figure labels survive.
 **After any visual-mode session, run `git diff` and check the table labels are intact.**
 Written up in `upstream/quarto-issue-visual-editor-tbl-label.md`.
+
+## Change reports
+
+`git diff` is line-based, which suits code and the people who write it, but not a reader
+of prose: a one-word edit shows as a whole paragraph removed and re-added, in a terminal.
+Someone reviewing a document wants what Word's track changes shows them.
+`redline/md_redline.py` produces that as a single HTML page -- deleted words red and struck
+through, inserted words green and underlined, inside the running paragraph. Each paragraph
+also takes its own direction (`dir="auto"`), so Hebrew reads right to left and English left
+to right, which `git diff` gets wrong as well. It needs only the Python standard library, plus `git` for the history mode.
+
+```bash
+python redline/md_redline.py compare old.md new.md -o diff.html
+python redline/md_redline.py history path/to/repo -o change-report.html
+python redline/md_redline.py history path/to/repo --since "2 weeks ago" --paths life-story.md
+```
+
+`compare` diffs two files. `history` walks a repository's log and writes one report for
+every commit that touched the selected files: a summary table at the top (date, commit
+message, author, words deleted and inserted), then one collapsible section per commit with
+the changes in each file. Only changed paragraphs are shown, with a little grey context
+around them.
+
+| Option (`history`) | What it does |
+|---|---|
+| `--paths` | which files to report on, as git pathspecs; default `*.md` |
+| `--since` | only commits after a date, e.g. `2026-09-01` or `"2 weeks ago"` |
+| `--range` | only a commit range, e.g. `v1..HEAD` or `HEAD~10..HEAD` |
+| `--context N` | unchanged paragraphs shown around each change; default 1 (also for `compare`) |
+| `--oldest-first` | list commits in chronological order; default is newest first |
+| `--expand` | open every commit's section, instead of starting them collapsed |
+
+Word counts are approximate -- a word is a run of letters or digits -- and a commit with
+several parents is compared against its first parent only.
 
 ## Upstream
 
