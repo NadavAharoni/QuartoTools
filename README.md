@@ -46,6 +46,8 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | `scripts/set_docx_direction.py` | sets the direction of the tables and captions the filter cannot reach, after the render |
 | `filters/wrap-figure.lua` | floats a figure in a `.wrap-left` / `.wrap-right` div beside the text, caption kept under it |
 | `scripts/wrap_docx_figures.py` | in Word, moves each such figure and its caption into a floating text box, after the render |
+| `scripts/compress_docx_images.py` | writes `<name>.compressed.docx`, its pictures shrunk as Word's Compress Pictures does |
+| | scales each to 150 ppi at its shown size, deletes cropped-away parts, turns photo PNGs into JPEG |
 | `scripts/set_docx_font.py` | escape hatch: forces one font onto a rendered `.docx`, flattening every style |
 | `scripts/docx_to_qmd.py` | Word to Quarto converter, with the Hebrew cleanups a plain pandoc run leaves behind |
 | `example/smoke-test.qmd` | one page for checking that all of this still works after a change |
@@ -132,6 +134,25 @@ Two findings behind this, both measured against Word itself:
   stops the working fix from working. Keep it out of `templates/hebrew.docx`.
 * `w:bidiVisual` must sit immediately after `w:tblStyle` inside `w:tblPr`. Put it anywhere
   else and Word silently drops it when the file is opened.
+
+### A smaller copy to send around
+
+A rendered `.docx` carries every photo at the resolution it was taken at, so a document
+with a few photos easily passes 10 MB. To send it to people for comments, make a copy with
+the pictures shrunk, and keep the original for print:
+
+```bash
+python scripts/compress_docx_images.py path/to/document.docx              # 150 ppi
+python scripts/compress_docx_images.py path/to/document.docx --ppi 220    # sharper
+```
+
+It writes `document.compressed.docx` beside the original, and does what Word's **Picture
+Format -> Compress Pictures** does to every picture at once: each is scaled down to the
+given resolution at the size it is shown on the page, and a picture cropped in Word has its
+hidden parts deleted. It also stores a photo that came as PNG as JPEG instead, which is most
+of the saving for an AI-made or screenshot photo; `--keep-png` turns that off. A booklet of
+ten pictures went from 11.2 MB to 0.9 MB, with no difference visible on the page. It needs
+Pillow (`pip install pillow`).
 
 ### Checking the toolchain
 
