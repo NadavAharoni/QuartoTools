@@ -18,7 +18,9 @@ history covers several files, so a single ignore rule, *.changes.html, covers th
 
 Deleted words are red + struck through, inserted words are green + underlined,
 shown inside the running paragraph. Each paragraph gets dir="auto", so Hebrew
-paragraphs display right-to-left and English ones left-to-right.
+paragraphs display right-to-left and English ones left-to-right. A paragraph
+written over several lines (e.g. one sentence per line) is shown as one, and
+rewrapping it counts as no change.
 
 Only uses the Python standard library (+ the `git` command for history mode).
 """
@@ -124,16 +126,45 @@ def segs_to_paragraphs(segs):
     return paras
 
 
+# a fenced code block's opening or closing line
+FENCE_RE = re.compile(r"\s*(```|~~~)")
+# a line that starts a block of its own, rather than continuing the paragraph above it
+BLOCK_RE = re.compile(r"\s*(#|\||:::|```|~~~|<|!\[|[*+-]\s|\d+[.)]\s|>)")
+# a block whose text can go on over the following lines: a list item, a quote
+CONTINUED_RE = re.compile(r"\s*([*+-]\s|\d+[.)]\s|>)")
+
+
+def unwrap(text):
+    """Join the lines of each paragraph into one, as Markdown displays them, so a
+    file written one sentence per line still reports changes paragraph by paragraph,
+    and rewrapping a paragraph is no change at all. Code blocks, headings, tables and
+    the like keep their lines. Returns (lines, the source line each one starts on)."""
+    lines, starts, fence, open_para = [], [], False, False
+    for n, line in enumerate(text.split("\n")):
+        if FENCE_RE.match(line):
+            fence = not fence
+        elif not fence and line.strip() and open_para and not BLOCK_RE.match(line):
+            lines[-1] += " " + line.strip()
+            continue
+        lines.append(line)
+        starts.append(n)
+        open_para = (not fence and bool(line.strip()) and not FENCE_RE.match(line)
+                     and (not BLOCK_RE.match(line) or bool(CONTINUED_RE.match(line))))
+    return lines, starts
+
+
 def render_file_diff(old, new, context=1):
     """HTML for one file: only changed paragraphs (+context), word-level marks.
     Returns (html, deleted_words, inserted_words)."""
-    a, b = old.split("\n"), new.split("\n")
+    a, _ = unwrap(old)
+    b, b_line = unwrap(new)
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     blocks, total_d, total_i = [], 0, 0
     for group in sm.get_grouped_opcodes(context):
         chunk_html = []
         first = group[0]
-        chunk_html.append(f'<div class="loc">line {first[3] + 1}</div>')
+        line_no = b_line[first[3]] + 1 if first[3] < len(b_line) else len(new.split("\n"))
+        chunk_html.append(f'<div class="loc">line {line_no}</div>')
         for tag, i1, i2, j1, j2 in group:
             if tag == "equal":
                 for line in b[j1:j2]:

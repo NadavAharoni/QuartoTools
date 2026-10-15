@@ -241,7 +241,9 @@ an old and a new name (`--paths life-story.md life-story.qmd`, to follow a renam
 every commit that touched the selected files: a summary table at the top (date, commit
 message, author, words deleted and inserted), then one collapsible section per commit with
 the changes in each file. Only changed paragraphs are shown, with a little grey context
-around them.
+around them. A paragraph written over several lines -- one sentence per line, say, as the
+visual editor writes with `editor: markdown: wrap: sentence` -- is shown as the one
+paragraph it renders as, and a commit that only rewraps lines reports no change.
 
 | Option (`history`) | What it does |
 |---|---|
