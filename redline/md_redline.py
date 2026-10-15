@@ -5,12 +5,16 @@ md_redline.py - word-level "redline" reports for Markdown files (Hebrew/RTL frie
 Two modes:
 
   1) Compare two files:
-       python md_redline.py compare old.md new.md -o diff.html
+       python md_redline.py compare old.md new.md [-o diff.html]
 
   2) Walk the Git history of a repo and report every change:
-       python md_redline.py history [REPO] -o report.html
+       python md_redline.py history [REPO] [-o report.html]
            [--range main~20..main] [--since 2026-09-01] [--paths "*.md" "docs/*.md"]
            [--context 1] [--oldest-first]
+
+Without -o, the report is named <file>.changes.html (new.changes.html, or
+life-story.changes.html for --paths life-story.md), or <repo>.changes.html when
+history covers several files, so a single ignore rule, *.changes.html, covers them all.
 
 Deleted words are red + struck through, inserted words are green + underlined,
 shown inside the running paragraph. Each paragraph gets dir="auto", so Hebrew
@@ -198,6 +202,23 @@ def count_html(d, i):
     return f'<span class="count"><span class="d">−{d}</span> / <span class="i">+{i}</span> words</span>'
 
 
+# ---------------------------------------------------------------- output name
+
+def changes_name(path):
+    """docs/a.md -> docs/a.changes.html, so one ignore rule (*.changes.html) covers every report."""
+    p = Path(path)
+    return str(p.with_name(p.stem + ".changes.html"))
+
+
+def history_output(repo, paths):
+    """Name the report after the file when all paths are one file under its old and new
+    names (a.qmd + a.md), otherwise after the repository. It goes in the repository."""
+    stems = {str(Path(p).with_suffix("")) for p in paths}
+    if len(stems) == 1 and not any(ch in p for p in paths for ch in "*?[:"):
+        return changes_name(Path(repo) / paths[0])
+    return str(Path(repo) / (Path(repo).resolve().name + ".changes.html"))
+
+
 # ---------------------------------------------------------------- compare mode
 
 def cmd_compare(args):
@@ -207,8 +228,9 @@ def cmd_compare(args):
     title = f"{Path(args.old).name} → {Path(args.new).name}"
     out = (f"<h1>{html.escape(title)}</h1><div class='muted'>{count_html(d, i)}</div>{LEGEND}"
            f'<div class="file">{body}</div>')
-    Path(args.output).write_text(page(title, out), encoding="utf-8")
-    print(f"Wrote {args.output}  (-{d} / +{i} words)")
+    output = args.output or changes_name(args.new)
+    Path(output).write_text(page(title, out), encoding="utf-8")
+    print(f"Wrote {output}  (-{d} / +{i} words)")
 
 
 # ---------------------------------------------------------------- history mode
@@ -310,8 +332,9 @@ def cmd_history(args):
             f"{count_html(total_d, total_i)} · generated {datetime.now():%Y-%m-%d %H:%M}</div>{LEGEND}"
             f"<table><tr><th>Date</th><th>Change</th><th>Author</th><th>Words</th></tr>{''.join(rows)}</table>"
             f"{''.join(sections)}")
-    Path(args.output).write_text(page(title, body), encoding="utf-8")
-    print(f"Wrote {args.output}  ({len(commits)} commits, -{total_d} / +{total_i} words)")
+    output = args.output or history_output(repo, args.paths)
+    Path(output).write_text(page(title, body), encoding="utf-8")
+    print(f"Wrote {output}  ({len(commits)} commits, -{total_d} / +{total_i} words)")
 
 
 # ---------------------------------------------------------------- CLI
@@ -323,13 +346,14 @@ def main():
     c = sub.add_parser("compare", help="compare two files")
     c.add_argument("old")
     c.add_argument("new")
-    c.add_argument("-o", "--output", default="redline.html")
+    c.add_argument("-o", "--output", help="default: NEW's name with .changes.html, beside it")
     c.add_argument("--context", type=int, default=1, help="unchanged paragraphs shown around a change")
     c.set_defaults(func=cmd_compare)
 
     h = sub.add_parser("history", help="report all changes in a Git repo")
     h.add_argument("repo", nargs="?", default=".")
-    h.add_argument("-o", "--output", default="change-report.html")
+    h.add_argument("-o", "--output",
+                   help="default: <file>.changes.html for one file, else <repo>.changes.html, in REPO")
     h.add_argument("--range", help="e.g. v1..HEAD or HEAD~10..HEAD")
     h.add_argument("--since", help='e.g. 2026-09-01 or "2 weeks ago"')
     h.add_argument("--paths", nargs="+", default=["*.md"], help='file patterns (default "*.md")')

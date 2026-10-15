@@ -199,10 +199,22 @@ also takes its own direction (`dir="auto"`), so Hebrew reads right to left and E
 to right, which `git diff` gets wrong as well. It needs only the Python standard library, plus `git` for the history mode.
 
 ```bash
-python redline/md_redline.py compare old.md new.md -o diff.html
-python redline/md_redline.py history path/to/repo -o change-report.html
+python redline/md_redline.py compare old.md new.md
+python redline/md_redline.py history path/to/repo
 python redline/md_redline.py history path/to/repo --since "2 weeks ago" --paths life-story.md
 ```
+
+Every report is named `*.changes.html`, so one line in a document repository's
+`.gitignore` keeps them all out of git without touching any other HTML:
+
+```gitignore
+*.changes.html
+```
+
+`compare` writes `new.changes.html` beside `new.md`. `history` writes into the repository:
+`life-story.changes.html` when `--paths` names a single file, including the same file under
+an old and a new name (`--paths life-story.md life-story.qmd`, to follow a rename), and
+`<repository name>.changes.html` otherwise. `-o` names the file yourself.
 
 `compare` diffs two files. `history` walks a repository's log and writes one report for
 every commit that touched the selected files: a summary table at the top (date, commit
