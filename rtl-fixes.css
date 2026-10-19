@@ -38,6 +38,14 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--hebrew-serif);
 }
 
+/* The slide number is "1 / 2" built from three spans. In a right-to-left page
+   the digits are laid out right to left around the neutral slash, so it reads
+   "2 / 1". Numbers count left to right even in Hebrew. */
+.reveal .slide-number {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 /* Leave monospace alone — David has no monospace design, and code needs
    fixed advance widths. */
 code, pre, kbd, samp {
