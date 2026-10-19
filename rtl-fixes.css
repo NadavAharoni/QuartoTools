@@ -23,6 +23,21 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--hebrew-serif);
 }
 
+/* reveal.js in RTL mode (`rtl: true`) sets `font-family: sans-serif` on the
+   slides and their headings with `.reveal.rtl .slides h1`. Three classes beat
+   the one in `.reveal h1` above whatever the file order, so the headings came
+   out sans-serif while paragraphs, which `.reveal p` targets directly, were
+   David. The same selectors, loaded later, win the tie. */
+.reveal.rtl .slides,
+.reveal.rtl .slides h1,
+.reveal.rtl .slides h2,
+.reveal.rtl .slides h3,
+.reveal.rtl .slides h4,
+.reveal.rtl .slides h5,
+.reveal.rtl .slides h6 {
+  font-family: var(--hebrew-serif);
+}
+
 /* Leave monospace alone — David has no monospace design, and code needs
    fixed advance widths. */
 code, pre, kbd, samp {
