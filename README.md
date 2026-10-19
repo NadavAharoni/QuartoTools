@@ -43,6 +43,7 @@ document holding a `_quarto.yml` -- so the project's settings apply.
 | | it renders at 2x and records 192 dpi in the PNG, so the figure keeps its size and gains detail |
 | | the raster of `figure.svg` is `figure.svg.png`, so `*.svg.png` is the only ignore rule rasters need |
 | `filters/auto-direction.lua` | gives each paragraph and table its own direction, during the render |
+| `filters/straight-header-quotes.lua` | keeps `"` and `'` in the title, subtitle and author straight, as `from: markdown-smart` does for the body |
 | `scripts/set_docx_direction.py` | sets the direction of the tables and captions the filter cannot reach, after the render |
 | `filters/wrap-figure.lua` | floats a figure in a `.wrap-left` / `.wrap-right` div beside the text, caption kept under it; `.full-page` spreads a picture over a whole page instead, for a cover |
 | `scripts/wrap_docx_figures.py` | in Word, moves each such figure and its caption into a floating text box, after the render |

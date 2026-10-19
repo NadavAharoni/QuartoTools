@@ -33,10 +33,10 @@ format:
     # layout direction cannot be set from a filter.
     # wrap-figure marks the figures in a .wrap-left / .wrap-right div, which
     # render.py then floats in text boxes; it must come before auto-direction.
-    filters: [filters/svg-to-png.lua, filters/wrap-figure.lua, filters/auto-direction.lua]
+    filters: [filters/straight-header-quotes.lua, filters/svg-to-png.lua, filters/wrap-figure.lua, filters/auto-direction.lua]
   html:
     css: rtl-fixes.css
     # The same filter gives each table its direction here, as a dir attribute.
     # Paragraphs need no filter in HTML: rtl-fixes.css sets unicode-bidi:
     # plaintext, which is the same rule expressed natively.
-    filters: [filters/wrap-figure.lua, filters/auto-direction.lua]
+    filters: [filters/straight-header-quotes.lua, filters/wrap-figure.lua, filters/auto-direction.lua]

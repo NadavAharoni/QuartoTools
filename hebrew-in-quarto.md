@@ -275,10 +275,16 @@ directly where you want them.
 The setting does not reach the YAML header. Quarto reads `title`, `subtitle` and the
 other metadata with smart quotes on whatever `from` says, so `subtitle: 'לע"נ'` still
 renders as `לע”נ`. A `"` there also clashes with YAML's own quoting:
-`subtitle: "לע"נ אמא"` stops the render with `bad indentation of a mapping entry`. In the
-header, write the Hebrew marks themselves, gershayim `״` (U+05F4) and geresh `׳` (U+05F3):
-`subtitle: "לע״נ אמא ע״ה"`. They are the correct characters anyway, YAML ignores them, and
-smart quotes leave them alone.
+`subtitle: "לע"נ אמא"` stops the render with `bad indentation of a mapping entry`.
+
+`filters/straight-header-quotes.lua` undoes the curling in the metadata, so the header
+behaves like the body. With it, write the value without YAML quotes and type `"` as usual:
+`subtitle: לע"נ אמא ע"ה`. Fall back to `'...'` only for a value YAML cannot take bare, one
+holding `: ` or starting with a symbol, and double any geresh inside it.
+
+The alternative needs no filter: the Hebrew marks themselves, gershayim `״` (U+05F4) and
+geresh `׳` (U+05F3), which YAML and smart quotes both leave alone. They are the correct
+characters, but most keyboards do not offer them.
 
 ## Why `pptx` fails for Hebrew
 
