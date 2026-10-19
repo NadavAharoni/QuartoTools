@@ -46,6 +46,16 @@ h1, h2, h3, h4, h5, h6 {
   unicode-bidi: isolate;
 }
 
+/* reveal.js indents lists with `margin: 0 0 0 1em` and does not mirror it in
+   RTL mode, so a list sits flush against the right edge and its bullets hang
+   outside the column, past the paragraphs above. Move the indent to the right,
+   at 0.7em rather than 1em so the bullets line up with the paragraph edge. */
+.reveal.rtl .slides ul,
+.reveal.rtl .slides ol {
+  margin-left: 0;
+  margin-right: 0.7em;
+}
+
 /* Leave monospace alone — David has no monospace design, and code needs
    fixed advance widths. */
 code, pre, kbd, samp {
