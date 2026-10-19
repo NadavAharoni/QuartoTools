@@ -272,6 +272,14 @@ acronym like `ה"פער` has no closing quote to pair with. `_quarto.yml` sets
 and `...` also stay as typed instead of becoming a dash and an ellipsis; type `–` and `…`
 directly where you want them.
 
+The setting does not reach the YAML header. Quarto reads `title`, `subtitle` and the
+other metadata with smart quotes on whatever `from` says, so `subtitle: 'לע"נ'` still
+renders as `לע”נ`. A `"` there also clashes with YAML's own quoting:
+`subtitle: "לע"נ אמא"` stops the render with `bad indentation of a mapping entry`. In the
+header, write the Hebrew marks themselves, gershayim `״` (U+05F4) and geresh `׳` (U+05F3):
+`subtitle: "לע״נ אמא ע״ה"`. They are the correct characters anyway, YAML ignores them, and
+smart quotes leave them alone.
+
 ## Why `pptx` fails for Hebrew
 
 Pandoc does not propagate `dir: rtl` into PowerPoint — the generated slides contain zero
